@@ -7,6 +7,7 @@ import shutil
 
 import config
 from modules.json_util import JsonWriter
+import sys
 
 def main():
     all_apps_list = os.listdir(config.APK_REPOSITORY)
@@ -30,7 +31,8 @@ def main():
             fail_counter = get_fail_counter(done_list_file)
         for file_name in row_apps_list:
             try:
-                acvtool_instrument(os.path.join(config.APK_REPOSITORY, file_name))
+                result = acvtool_instrument(os.path.join(config.APK_REPOSITORY, file_name))
+                logging.info(f'{file_name} ACVTOOL: {result}')
                 package_name = file_name[:-4]
                 move_files(package_name, done_list_file)
                 #JsonWriter(project_names).save_to_json()
@@ -44,9 +46,9 @@ def main():
                 done_list_file.write(f'{file_name}: FAIL\n')
                 done_list_file.flush()
     
-    logging.info(f'{counter}: proccessed from {size}. Failed: {fail_counter}.')
+    logging.info(f'{counter}: proccessed from {len(all_apps_list)}. Failed: {fail_counter}.')
 
-    print("main")
+    print("Finished.")
     
 
 def get_done_project_names(done_list_file):
@@ -67,9 +69,9 @@ def is_row_app(path):
 
 
 def acvtool_instrument(apk_path):
-    cmd = "{0} {1} instrument -r {2} -o {3}".format(config.ACVTOOL_PYTHON, 
+    cmd = "{0} {1} instrument -r --wd {2} {3}".format(config.ACVTOOL_PYTHON, 
         os.path.join(config.ACVTOOL_PATH, 'smiler', 'acvtool.py'),
-        apk_path, config.ACVTOOL_WD)
+        config.ACVTOOL_WD, apk_path)
     result = request_pipe(cmd)
     return result
 
@@ -77,14 +79,16 @@ def move_files(package_name, done_list_file):
         pickle = os.path.join(config.ACVTOOL_WD, "metadata", package_name + ".pickle")
         instrumented_apk = os.path.join(config.ACVTOOL_WD, "instr_" + package_name + ".apk")
         android_manifest = os.path.join(config.ACVTOOL_WD, "apktool", "AndroidManifest.xml")
-        
-        shutil.copyfile(pickle, os.path.join(config.ACVTOOL_RESULTS, package_name + ".pickle"))
-        shutil.copyfile(instrumented_apk, os.path.join(config.ACVTOOL_RESULTS, package_name + ".apk"))
-        shutil.copyfile(android_manifest, os.path.join(config.ACVTOOL_RESULTS, package_name + ".xml"))
-        
-        logging.info(f'{package_name}: SUCCESS')
-        done_list_file.write(f'{package_name}: SUCCESS\n')
-        done_list_file.flush()
+        if os.path.exists(pickle) and os.path.exists(instrumented_apk) and \
+            os.path.exists(android_manifest):
+            shutil.copyfile(pickle, os.path.join(config.ACVTOOL_RESULTS, package_name + ".pickle"))
+            shutil.copyfile(instrumented_apk, os.path.join(config.ACVTOOL_RESULTS, package_name + ".apk"))
+            shutil.copyfile(android_manifest, os.path.join(config.ACVTOOL_RESULTS, package_name + ".xml"))
+            logging.info(f'{package_name}: SUCCESS')
+            done_list_file.write(f'{package_name}: SUCCESS\n')
+            done_list_file.flush()
+        else:
+            raise Exception("ACVTOOL FAILED")
         
 def request_pipe(cmd):
     pipe = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
@@ -99,11 +103,24 @@ def request_pipe(cmd):
 
     return res
 
+def done_file_stats():
+    done_list_path = os.path.join(config.ACVTOOL_RESULTS, "done_list.txt")
+    with open(done_list_path, 'r') as done_list_file:
+        #text = done_list_file.read()
+        done_project_names = get_done_project_names(done_list_file)
+        fail_counter = get_fail_counter(done_list_file)
+        print("DONE FILE STATS:")
+        print(f'Whole number of the projects: {len(done_project_names)}. Failed: {fail_counter}')
+    
+    
+
 if __name__ == "__main__":
     #parser = get_parser()
     #args = parser.parse_args()
     #args = parser.parse_args([r"C:\apks\originalapk\FDroid.apk"])
     #print(args.apk_path)
     #run_actions(args)
+    done_file_stats()
     main()
+
 
