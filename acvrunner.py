@@ -84,8 +84,8 @@ def move_files(package_name, done_list_file):
             shutil.copyfile(pickle, os.path.join(config.ACVTOOL_RESULTS, package_name + ".pickle"))
             shutil.copyfile(instrumented_apk, os.path.join(config.ACVTOOL_RESULTS, package_name + ".apk"))
             shutil.copyfile(android_manifest, os.path.join(config.ACVTOOL_RESULTS, package_name + ".xml"))
-            logging.info(f'{package_name}: SUCCESS')
-            done_list_file.write(f'{package_name}: SUCCESS\n')
+            logging.info(f'{package_name}.apk: SUCCESS')
+            done_list_file.write(f'{package_name}.apk: SUCCESS\n')
             done_list_file.flush()
         else:
             raise Exception("ACVTOOL FAILED")
@@ -105,22 +105,17 @@ def request_pipe(cmd):
 
 def done_file_stats():
     done_list_path = os.path.join(config.ACVTOOL_RESULTS, "done_list.txt")
-    with open(done_list_path, 'r') as done_list_file:
-        #text = done_list_file.read()
-        done_project_names = get_done_project_names(done_list_file)
-        fail_counter = get_fail_counter(done_list_file)
-        print("DONE FILE STATS:")
-        print(f'Whole number of the projects: {len(done_project_names)}. Failed: {fail_counter}')
-    
-    
+    if os.path.exists(done_list_path):
+        with open(done_list_path, 'r') as done_list_file:
+            #text = done_list_file.read()
+            done_project_names = get_done_project_names(done_list_file)
+            fail_counter = get_fail_counter(done_list_file)
+            print("DONE FILE STATS:")
+            print(f'Whole number of the projects: {len(done_project_names)}. Failed: {fail_counter}')
+    else:
+        print("Processing was started from scratch.")
 
 if __name__ == "__main__":
-    #parser = get_parser()
-    #args = parser.parse_args()
-    #args = parser.parse_args([r"C:\apks\originalapk\FDroid.apk"])
-    #print(args.apk_path)
-    #run_actions(args)
     done_file_stats()
     main()
-
-
+    done_file_stats()

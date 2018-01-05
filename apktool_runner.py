@@ -94,18 +94,18 @@ def request_pipe(cmd):
     return res
 
 def done_file_stats():
-    done_list_path = os.path.join(config.APKTOOL_RESULTS, "done_list.txt")
-    if not os.path.exists(done_list_path):
-        logging.info("Done file is empty yet.")
-        return
-    with open(done_list_path, 'r+') as done_list_file:
-        #text = done_list_file.read()
-        done_project_names = get_done_project_names(done_list_file)
-        fail_counter = get_fail_counter(done_list_file)
-        print("DONE FILE STATS:")
-        print(f'Whole number of the projects: {len(done_project_names)}. Failed: {fail_counter}')
-
+    done_list_path = os.path.join(config.ACVTOOL_RESULTS, "done_list.txt")
+    if os.path.exists(done_list_path):
+        with open(done_list_path, 'r') as done_list_file:
+            #text = done_list_file.read()
+            done_project_names = get_done_project_names(done_list_file)
+            fail_counter = get_fail_counter(done_list_file)
+            print("DONE FILE STATS:")
+            print(f'Whole number of the projects: {len(done_project_names)}. Failed: {fail_counter}')
+    else:
+        print("Processing was started from scratch.")
 
 if __name__ == "__main__":
     done_file_stats()
     main()
+    done_file_stats()
