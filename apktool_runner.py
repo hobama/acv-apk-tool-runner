@@ -65,7 +65,7 @@ def get_fail_counter(done_list_file):
 
 def is_row_app(path):
     basename = os.path.basename(path)
-    return not basename.endswith("_instrumented.apk")
+    return not basename.endswith("_instrumented.apk") and basename.endswith(".apk")
 
 
 def apktool_unpack(apk_path):
