@@ -2,16 +2,26 @@ import os, sys
 import logging
 import subprocess
 import shutil
+import yaml
+from logging import config
 
 import config
 
+def read_file(path):
+    with open(path, "r") as file:
+        lines = file.read().split('\n')
+    return lines[:-1] # -1 for empty strings
+
 def main():
-    all_apps_list = os.listdir(config.APK_REPOSITORY)
-    row_apps_list = [x for x in all_apps_list if is_row_app(x)]
+    #all_apps_list = os.listdir(config.APK_REPOSITORY)
+    #row_apps_list = [x for x in all_apps_list if is_row_app(x)]
+    pckgs = read_file(r"C:\projects\droidmod-mental\experiments\coverage\acvtool_runtime_crashes_list.txt")
+
+    row_apps_list = [x+'.apk' for x in pckgs ]
     
     if not os.path.exists(config.APKTOOL_RESULTS):
         os.makedirs(config.APKTOOL_RESULTS)
-    done_list_path = os.path.join(config.APKTOOL_RESULTS, "done_list.txt")
+    done_list_path = os.path.join(config.APKTOOL_RESULTS, "apktool_done_list.txt")
     ignore_done_list = False
     with open(done_list_path, 'a+') as done_list_file:
         projects_to_process = set(row_apps_list)
@@ -31,6 +41,8 @@ def main():
                 logging.info(f'{file_name} APKTOOL: {result}')
                 result = apktool_pack(file_name)
                 logging.info(f'{file_name} APKTOOL: {result}')
+                result = acvtool_sign(file_name)
+                logging.info(f'{file_name} Acvtool: {result}')
                 package_name = file_name[:-4]
                 logging.info(f'{package_name}: SUCCESS')
                 done_list_file.write(f'{package_name}: SUCCESS\n')
@@ -49,7 +61,14 @@ def main():
     logging.info(f'{counter}: proccessed from {len(all_apps_list)}. Failed: {fail_counter}.')
 
     print("Finished.")
-    
+
+
+def acvtool_sign(apk_path):
+    cmd = "{0} {1} sign {2}".format(config.ACVTOOL_PYTHON, 
+        os.path.join(config.ACVTOOL_PATH, 'smiler', 'acvtool.py'), apk_path)
+    result = request_pipe(cmd)
+    return result
+
 
 def get_done_project_names(done_list_file):
     done_list_file.seek(0)
@@ -91,7 +110,7 @@ def request_pipe(cmd):
     if pipe.returncode > 0:
         print("return_code: {0}".format(pipe.returncode))
 
-    return res
+    return res, pipe.returncode
 
 def done_file_stats():
     done_list_path = os.path.join(config.ACVTOOL_RESULTS, "done_list.txt")
@@ -105,7 +124,13 @@ def done_file_stats():
     else:
         print("Processing was started from scratch.")
 
+def setup_logging():
+    with open('logging.yaml') as f:
+        logging.config.dictConfig(yaml.safe_load(f.read()))
+
+
 if __name__ == "__main__":
+    setup_logging()
     done_file_stats()
     main()
     done_file_stats()
