@@ -1,5 +1,7 @@
 import os
 import logging
+from logging import config
+import yaml
 import subprocess
 import math
 import argparse
@@ -10,15 +12,16 @@ from modules.json_util import JsonWriter
 import sys
 
 def main():
-    all_apps_list = os.listdir(config.APK_REPOSITORY)
-    row_apps_list = [x for x in all_apps_list if is_row_app(x)]
     
+    all_apps_list = os.listdir(config.APK_REPOSITORY)
+    row_apps_pkgs_list = [x[:-4] for x in all_apps_list if is_row_app(x)]
     if not os.path.exists(config.ACVTOOL_RESULTS):
         os.makedirs(config.ACVTOOL_RESULTS)
     done_list_path = os.path.join(config.ACVTOOL_RESULTS, "done_list.txt")
     ignore_done_list = False
     with open(done_list_path, 'a+') as done_list_file:
-        projects_to_process = set(row_apps_list)
+        projects_to_process = set(row_apps_pkgs_list)
+        #print("instrumented: {0}, original: {1}, intersection: {2}".format(len(instrumented_app_pkgs_list), len(row_apps_pkgs_list), len(projects_to_process)))
         counter = 0
         fail_counter = 0
         if not ignore_done_list:
@@ -29,21 +32,20 @@ def main():
             projects_to_process = projects_to_process - set(done_project_names)
             counter = len(done_project_names)
             fail_counter = get_fail_counter(done_list_file)
-        for file_name in row_apps_list:
+        for pkg in projects_to_process:
             try:
-                result = acvtool_instrument(os.path.join(config.APK_REPOSITORY, file_name))
-                logging.info(f'{file_name} ACVTOOL: {result}')
-                package_name = file_name[:-4]
-                move_files(package_name, done_list_file)
+                result = acvtool_instrument(os.path.join(config.APK_REPOSITORY, pkg + '.apk'))
+                logging.info(f'{pkg} ACVTOOL: {result}')
+                move_files(pkg, done_list_file)
                 #JsonWriter(project_names).save_to_json()
                 counter += 1
             except KeyboardInterrupt:
                 logging.info('Keyboard interrupt.')
                 sys.exit()
             except Exception as e:
-                logging.exception(f'{file_name}: FAIL : {e}')
+                logging.exception(f'{pkg}: FAIL : {e}')
                 fail_counter += 1
-                done_list_file.write(f'{file_name}: FAIL\n')
+                done_list_file.write(f'{pkg}: FAIL\n')
                 done_list_file.flush()
     
     logging.info(f'{counter}: proccessed from {len(all_apps_list)}. Failed: {fail_counter}.')
@@ -65,7 +67,7 @@ def get_fail_counter(done_list_file):
 
 def is_row_app(path):
     basename = os.path.basename(path)
-    return not basename.endswith("_instrumented.apk")
+    return basename.endswith(".apk")
 
 
 def acvtool_instrument(apk_path):
@@ -85,7 +87,7 @@ def move_files(package_name, done_list_file):
             shutil.copyfile(instrumented_apk, os.path.join(config.ACVTOOL_RESULTS, package_name + ".apk"))
             shutil.copyfile(android_manifest, os.path.join(config.ACVTOOL_RESULTS, package_name + ".xml"))
             logging.info(f'{package_name}.apk: SUCCESS')
-            done_list_file.write(f'{package_name}.apk: SUCCESS\n')
+            done_list_file.write(f'{package_name}: SUCCESS\n')
             done_list_file.flush()
         else:
             raise Exception("ACVTOOL FAILED")
@@ -115,7 +117,12 @@ def done_file_stats():
     else:
         print("Processing was started from scratch.")
 
+def setup_logging():
+    with open('logging.yaml') as f:
+        logging.config.dictConfig(yaml.safe_load(f.read()))
+
 if __name__ == "__main__":
+    setup_logging()
     done_file_stats()
     main()
     done_file_stats()
