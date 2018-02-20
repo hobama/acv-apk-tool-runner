@@ -15,9 +15,9 @@ class JsonWriter:
         msg = 'SAVE TO JSON'
         projects_count = len(self.projects)
         if projects_count == 1:
-            msg = f'{self.projects[0].name}: ' + msg
+            msg = '{}: '.format(self.projects[0].name) + msg
         else:
-            msg += f'{projects_count} PROJECTS'
+            msg += '{} PROJECTS'.format(projects_count)
         logging.info(msg)
         for project in self.projects:
             record = {"path": project.path, "name": project.name, "gradle_version": project.gradle_version}

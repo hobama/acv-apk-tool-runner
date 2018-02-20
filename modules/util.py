@@ -13,7 +13,7 @@ def move_apk_to_results_dir(apk):
     msg = 'MOVE'
     if apk.instrumented:
         msg += ' INSTRUMENTED'
-    logging.info(f'{apk.project.name}: {msg}')
+    logging.info('{}: {}'.format(apk.project.name, msg))
     if not os.path.exists(apk.path):
         raise AbsentApkException
     apk_name = apk.project.name

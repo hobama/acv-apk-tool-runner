@@ -27,15 +27,15 @@ def main():
         if not ignore_done_list:
             done_project_names = get_done_project_names(done_list_file)
             logging.info('================================================================================================================================================')
-            logging.info(f'DONE LIST SIZE: {len(done_project_names)}')
-            logging.debug(f'DONE LIST CONTENT: {done_project_names}')
+            logging.info("DONE LIST SIZE: {}".format(len(done_project_names)))
+            logging.debug('DONE LIST CONTENT: {}'.format(done_project_names))
             projects_to_process = projects_to_process - set(done_project_names)
             counter = len(done_project_names)
             fail_counter = get_fail_counter(done_list_file)
         for pkg in projects_to_process:
             try:
                 result = acvtool_instrument(os.path.join(config.APK_REPOSITORY, pkg + '.apk'))
-                logging.info(f'{pkg} ACVTOOL: {result}')
+                logging.info('{} ACVTOOL: {}'.format(pkg, result))
                 move_files(pkg, done_list_file)
                 #JsonWriter(project_names).save_to_json()
                 counter += 1
@@ -43,12 +43,12 @@ def main():
                 logging.info('Keyboard interrupt.')
                 sys.exit()
             except Exception as e:
-                logging.exception(f'{pkg}: FAIL : {e}')
+                logging.exception('{}: FAIL : {}'.format(pkg, e))
                 fail_counter += 1
-                done_list_file.write(f'{pkg}: FAIL\n')
+                done_list_file.write('{}: FAIL\n'.format(pkg))
                 done_list_file.flush()
     
-    logging.info(f'{counter}: proccessed from {len(all_apps_list)}. Failed: {fail_counter}.')
+    logging.info('{}: proccessed from {}. Failed: {}.'.format(counter, len(all_apps_list), fail_counter))
 
     print("Finished.")
     
@@ -86,8 +86,8 @@ def move_files(package_name, done_list_file):
             shutil.move(pickle, os.path.join(config.ACVTOOL_RESULTS, package_name + ".pickle"))
             shutil.move(instrumented_apk, os.path.join(config.ACVTOOL_RESULTS, package_name + ".apk"))
             shutil.move(android_manifest, os.path.join(config.ACVTOOL_RESULTS, package_name + ".xml"))
-            logging.info(f'{package_name}.apk: SUCCESS')
-            done_list_file.write(f'{package_name}: SUCCESS\n')
+            logging.info('{}.apk: SUCCESS'.format(package_name))
+            done_list_file.write('{}: SUCCESS\n'.format(package_name))
             done_list_file.flush()
         else:
             raise Exception("ACVTOOL FAILED")
@@ -113,7 +113,7 @@ def done_file_stats():
             done_project_names = get_done_project_names(done_list_file)
             fail_counter = get_fail_counter(done_list_file)
             print("DONE FILE STATS:")
-            print(f'Whole number of the projects: {len(done_project_names)}. Failed: {fail_counter}')
+            print('Whole number of the projects: {}. Failed: {}'.format(len(done_project_names), fail_counter))
     else:
         print("Processing was started from scratch.")
 
