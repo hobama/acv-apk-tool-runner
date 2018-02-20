@@ -83,9 +83,9 @@ def move_files(package_name, done_list_file):
         android_manifest = os.path.join(config.ACVTOOL_WD, "apktool", "AndroidManifest.xml")
         if os.path.exists(pickle) and os.path.exists(instrumented_apk) and \
             os.path.exists(android_manifest):
-            shutil.copyfile(pickle, os.path.join(config.ACVTOOL_RESULTS, package_name + ".pickle"))
-            shutil.copyfile(instrumented_apk, os.path.join(config.ACVTOOL_RESULTS, package_name + ".apk"))
-            shutil.copyfile(android_manifest, os.path.join(config.ACVTOOL_RESULTS, package_name + ".xml"))
+            shutil.move(pickle, os.path.join(config.ACVTOOL_RESULTS, package_name + ".pickle"))
+            shutil.move(instrumented_apk, os.path.join(config.ACVTOOL_RESULTS, package_name + ".apk"))
+            shutil.move(android_manifest, os.path.join(config.ACVTOOL_RESULTS, package_name + ".xml"))
             logging.info(f'{package_name}.apk: SUCCESS')
             done_list_file.write(f'{package_name}: SUCCESS\n')
             done_list_file.flush()
