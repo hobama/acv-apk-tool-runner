@@ -21,7 +21,7 @@ def main():
     ignore_done_list = False
     with open(done_list_path, 'a+') as done_list_file:
         projects_to_process = set(row_apps_pkgs_list)
-        #print("instrumented: {0}, original: {1}, intersection: {2}".format(len(instrumented_app_pkgs_list), len(row_apps_pkgs_list), len(projects_to_process)))
+        logging.info("all: {0}, raw: {1}, to_process: {2}".format(len(all_apps_list), len(row_apps_pkgs_list), len(projects_to_process)))
         counter = 0
         fail_counter = 0
         if not ignore_done_list:
@@ -71,8 +71,8 @@ def is_row_app(path):
 
 
 def acvtool_instrument(apk_path):
-    cmd = "{0} {1} instrument -r --wd {2} {3}".format(config.ACVTOOL_PYTHON, 
-        os.path.join(config.ACVTOOL_PATH, 'smiler', 'acvtool.py'),
+    cmd = "{0} {1} instrument -f --wd {2} {3}".format(config.ACVTOOL_PYTHON, 
+        os.path.join(config.ACVTOOL_PATH, 'acvtool.py'),
         config.ACVTOOL_WD, apk_path)
     result = request_pipe(cmd)
     return result
