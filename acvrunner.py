@@ -6,22 +6,21 @@ import subprocess
 import math
 import argparse
 import shutil
+from io import open
 
 import config
-from modules.json_util import JsonWriter
 import sys
 
 def main():
-    
-    all_apps_list = os.listdir(config.APK_REPOSITORY)
-    row_apps_pkgs_list = [x[:-4] for x in all_apps_list if is_row_app(x)]
+    all_files = os.listdir(config.APK_REPOSITORY)
+    row_apps_pkgs_list = [x[:-4] for x in all_files if is_row_app(x)]
     if not os.path.exists(config.ACVTOOL_RESULTS):
         os.makedirs(config.ACVTOOL_RESULTS)
     done_list_path = os.path.join(config.ACVTOOL_RESULTS, "done_list.txt")
     ignore_done_list = False
-    with open(done_list_path, 'a+') as done_list_file:
+    with open(done_list_path, 'a+', encoding='utf-8') as done_list_file:
         projects_to_process = set(row_apps_pkgs_list)
-        logging.info("all: {0}, raw: {1}, to_process: {2}".format(len(all_apps_list), len(row_apps_pkgs_list), len(projects_to_process)))
+        #print("instrumented: {0}, original: {1}, intersection: {2}".format(len(instrumented_app_pkgs_list), len(row_apps_pkgs_list), len(projects_to_process)))
         counter = 0
         fail_counter = 0
         if not ignore_done_list:
@@ -37,7 +36,6 @@ def main():
                 result = acvtool_instrument(os.path.join(config.APK_REPOSITORY, pkg + '.apk'))
                 logging.info('{} ACVTOOL: {}'.format(pkg, result))
                 move_files(pkg, done_list_file)
-                #JsonWriter(project_names).save_to_json()
                 counter += 1
             except KeyboardInterrupt:
                 logging.info('Keyboard interrupt.')
@@ -45,12 +43,11 @@ def main():
             except Exception as e:
                 logging.exception('{}: FAIL : {}'.format(pkg, e))
                 fail_counter += 1
-                done_list_file.write('{}: FAIL\n'.format(pkg))
+                done_list_file.write(u'{}: FAIL\n'.format(pkg))
                 done_list_file.flush()
-    
-    logging.info('{}: proccessed from {}. Failed: {}.'.format(counter, len(all_apps_list), fail_counter))
+    logging.info('{}: proccessed from {}. Failed: {}.'.format(counter, len(all_files), fail_counter))
 
-    print("Finished.")
+    logging.info("Finished.")
     
 
 def get_done_project_names(done_list_file):
@@ -86,8 +83,11 @@ def move_files(package_name, done_list_file):
             shutil.move(pickle, os.path.join(config.ACVTOOL_RESULTS, package_name + ".pickle"))
             shutil.move(instrumented_apk, os.path.join(config.ACVTOOL_RESULTS, package_name + ".apk"))
             shutil.move(android_manifest, os.path.join(config.ACVTOOL_RESULTS, package_name + ".xml"))
+            original_apk_at_wd = os.path.join(config.ACVTOOL_WD, package_name + ".apk")
+            if os.path.exists(original_apk_at_wd):
+                os.remove(original_apk_at_wd)
             logging.info('{}.apk: SUCCESS'.format(package_name))
-            done_list_file.write('{}: SUCCESS\n'.format(package_name))
+            done_list_file.write(u'{}: SUCCESS\n'.format(package_name))
             done_list_file.flush()
         else:
             raise Exception("ACVTOOL FAILED")
@@ -95,14 +95,11 @@ def move_files(package_name, done_list_file):
 def request_pipe(cmd):
     pipe = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
     out, err = pipe.communicate()
-
     res = out
     if not out:
         res = err
-    
     if pipe.returncode > 0:
         print("return_code: {0}".format(pipe.returncode))
-
     return res
 
 def done_file_stats():
@@ -112,10 +109,10 @@ def done_file_stats():
             #text = done_list_file.read()
             done_project_names = get_done_project_names(done_list_file)
             fail_counter = get_fail_counter(done_list_file)
-            print("DONE FILE STATS:")
-            print('Whole number of the projects: {}. Failed: {}'.format(len(done_project_names), fail_counter))
+            logging.info("DONE FILE STATS:")
+            logging.info('Whole number of the projects: {}. Failed: {}'.format(len(done_project_names), fail_counter))
     else:
-        print("Processing was started from scratch.")
+        logging.info("Processing was started from scratch.")
 
 def setup_logging():
     with open('logging.yaml') as f:
