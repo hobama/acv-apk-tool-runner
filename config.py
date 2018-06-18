@@ -1,10 +1,10 @@
-APK_REPOSITORY = r"C:\top60\new"
+APK_REPOSITORY = r"/datasets/play200test/original"
 
 # acvrunner.py settings
-ACVTOOL_RESULTS = r"C:\top60\instrumented"
-ACVTOOL_PATH = r"C:\projects\droidmod-smali-modifier"
-ACVTOOL_PYTHON = r"c:\Python27\python.exe"
-ACVTOOL_WD = r"C:\projects\droidmod-smali-modifier\smiler\acvtool_working_dir"
+ACVTOOL_RESULTS = r"/datasets/play200test/acvtool_instruction"
+ACVTOOL_PATH = r"/home/alex/projects/droidmod-smali-modifier"
+ACVTOOL_PYTHON = r"python2"
+ACVTOOL_WD = r"/home/alex/projects/droidmod-smali-modifier/acvtool_working_dir"
 
 # apktool_runner.py settings (dont use in acvrunner.py)
 APKTOOL_PATH = r"C:\distr\android\apktool\apktool_2.3.1.jar"
