@@ -68,8 +68,8 @@ def is_row_app(path):
 
 
 def acvtool_instrument(apk_path):
-    cmd = "{0} {1} instrument -f --wd {2} {3}".format(config.ACVTOOL_PYTHON, 
-        os.path.join(config.ACVTOOL_PATH, 'acvtool.py'),
+    cmd = "{0} {1} instrument -f -g {2} --wd {3} {4}".format(config.ACVTOOL_PYTHON, 
+        os.path.join(config.ACVTOOL_PATH, 'acvtool.py'), config.GRANULARITY,
         config.ACVTOOL_WD, apk_path)
     result = request_pipe(cmd)
     return result
@@ -77,12 +77,14 @@ def acvtool_instrument(apk_path):
 def move_files(package_name, done_list_file):
         pickle = os.path.join(config.ACVTOOL_WD, "metadata", package_name + ".pickle")
         instrumented_apk = os.path.join(config.ACVTOOL_WD, "instr_" + package_name + ".apk")
-        android_manifest = os.path.join(config.ACVTOOL_WD, "apktool", "AndroidManifest.xml")
-        if os.path.exists(pickle) and os.path.exists(instrumented_apk) and \
-            os.path.exists(android_manifest):
-            shutil.move(pickle, os.path.join(config.ACVTOOL_RESULTS, package_name + ".pickle"))
-            shutil.move(instrumented_apk, os.path.join(config.ACVTOOL_RESULTS, package_name + ".apk"))
-            shutil.move(android_manifest, os.path.join(config.ACVTOOL_RESULTS, package_name + ".xml"))
+        #android_manifest = os.path.join(config.ACVTOOL_WD, "apktool", "AndroidManifest.xml")
+        app_dir = os.path.join(config.ACVTOOL_RESULTS, package_name)
+        if os.path.exists(pickle) and os.path.exists(instrumented_apk):
+            if not os.path.exists(app_dir):
+                os.makedirs(app_dir)
+            shutil.move(pickle, os.path.join(app_dir, package_name + ".pickle"))
+            shutil.move(instrumented_apk, os.path.join(app_dir, package_name + ".apk"))
+            #shutil.move(android_manifest, os.path.join(config.ACVTOOL_RESULTS, package_name + ".xml"))
             original_apk_at_wd = os.path.join(config.ACVTOOL_WD, package_name + ".apk")
             if os.path.exists(original_apk_at_wd):
                 os.remove(original_apk_at_wd)
