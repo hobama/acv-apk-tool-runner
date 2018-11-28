@@ -13,17 +13,18 @@ def read_file(path):
     return lines[:-1] # -1 for empty strings
 
 def main():
-    #all_apps_list = os.listdir(config.APK_REPOSITORY)
-    #row_apps_list = [x for x in all_apps_list if is_row_app(x)]
-    pckgs = read_file(r"C:\projects\droidmod-mental\experiments\coverage\acvtool_runtime_crashes_list.txt")
+    all_apps_list = os.listdir(config.APK_REPOSITORY)
+    row_apps_list = [x for x in all_apps_list if is_row_app(x)]
+    #pckgs = read_file(r"C:\20\failed-packages.txt")
 
-    row_apps_list = [x+'.apk' for x in pckgs ]
+    #row_apps_list = [x+'.apk' for x in pckgs ]
     
     if not os.path.exists(config.APKTOOL_RESULTS):
         os.makedirs(config.APKTOOL_RESULTS)
     done_list_path = os.path.join(config.APKTOOL_RESULTS, "apktool_done_list.txt")
     ignore_done_list = False
     with open(done_list_path, 'a+') as done_list_file:
+        input("Wait")
         projects_to_process = set(row_apps_list)
         counter = 0
         fail_counter = 0
@@ -36,13 +37,21 @@ def main():
             counter = len(done_project_names)
             fail_counter = get_fail_counter(done_list_file)
         for file_name in row_apps_list:
+            #input("wait 2")
             try:
                 result = apktool_unpack(os.path.join(config.APK_REPOSITORY, file_name))
-                logging.info(f'{file_name} APKTOOL: {result}')
+                logging.info(f'{file_name} APKTOOL: {result[0]}')
+                #input("wait 3")
                 result = apktool_pack(file_name)
-                logging.info(f'{file_name} APKTOOL: {result}')
+                logging.info(f'{file_name} APKTOOL: {result[0]}')
+                #input("wait 4")
+                if result[2] == 1:
+                    raise Exception(result[1])
                 result = acvtool_sign(file_name)
-                logging.info(f'{file_name} Acvtool: {result}')
+                logging.info(f'{file_name} Acvtool: {result[0]}')
+                #input("wait 5")
+                if result[2] == 1:
+                    raise Exception(result[1])
                 package_name = file_name[:-4]
                 logging.info(f'{package_name}: SUCCESS')
                 done_list_file.write(f'{package_name}: SUCCESS\n')
@@ -65,7 +74,7 @@ def main():
 
 def acvtool_sign(apk_path):
     cmd = "{0} {1} sign {2}".format(config.ACVTOOL_PYTHON, 
-        os.path.join(config.ACVTOOL_PATH, 'smiler', 'acvtool.py'), apk_path)
+        os.path.join(config.ACVTOOL_PATH, 'acvtool.py'), apk_path)
     result = request_pipe(cmd)
     return result
 
@@ -100,8 +109,13 @@ def apktool_pack(file_name):
     return result
 
 def request_pipe(cmd):
+    print(cmd)
     pipe = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
     out, err = pipe.communicate()
+    if out:
+        out = str(out,"utf-8")
+    if err:
+        err = str(err, "utf-8")
 
     res = out
     if not out:
@@ -110,7 +124,7 @@ def request_pipe(cmd):
     if pipe.returncode > 0:
         print("return_code: {0}".format(pipe.returncode))
 
-    return res, pipe.returncode
+    return res, err, pipe.returncode
 
 def done_file_stats():
     done_list_path = os.path.join(config.ACVTOOL_RESULTS, "done_list.txt")
