@@ -15,16 +15,12 @@ def read_file(path):
 def main():
     all_apps_list = os.listdir(config.APK_REPOSITORY)
     row_apps_list = [x for x in all_apps_list if is_row_app(x)]
-    #pckgs = read_file(r"C:\20\failed-packages.txt")
-
-    #row_apps_list = [x+'.apk' for x in pckgs ]
     
     if not os.path.exists(config.APKTOOL_RESULTS):
         os.makedirs(config.APKTOOL_RESULTS)
     done_list_path = os.path.join(config.APKTOOL_RESULTS, "apktool_done_list.txt")
     ignore_done_list = False
     with open(done_list_path, 'a+') as done_list_file:
-        input("Wait")
         projects_to_process = set(row_apps_list)
         counter = 0
         fail_counter = 0
@@ -37,19 +33,15 @@ def main():
             counter = len(done_project_names)
             fail_counter = get_fail_counter(done_list_file)
         for file_name in row_apps_list:
-            #input("wait 2")
             try:
                 result = apktool_unpack(os.path.join(config.APK_REPOSITORY, file_name))
                 logging.info(f'{file_name} APKTOOL: {result[0]}')
-                #input("wait 3")
                 result = apktool_pack(file_name)
                 logging.info(f'{file_name} APKTOOL: {result[0]}')
-                #input("wait 4")
                 if result[2] == 1:
                     raise Exception(result[1])
                 result = acvtool_sign(file_name)
                 logging.info(f'{file_name} Acvtool: {result[0]}')
-                #input("wait 5")
                 if result[2] == 1:
                     raise Exception(result[1])
                 package_name = file_name[:-4]
