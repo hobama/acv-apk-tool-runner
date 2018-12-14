@@ -40,7 +40,7 @@ def main():
                 logging.info(f'{file_name} APKTOOL: {result[0]}')
                 if result[2] == 1:
                     raise Exception(result[1])
-                result = acvtool_sign(file_name)
+                result = acvtool_sign(os.path.join(config.APKTOOL_RESULTS, file_name))
                 logging.info(f'{file_name} Acvtool: {result[0]}')
                 if result[2] == 1:
                     raise Exception(result[1])
@@ -65,7 +65,7 @@ def main():
 
 
 def acvtool_sign(apk_path):
-    cmd = "{0} {1} sign {2}".format(config.ACVTOOL_PYTHON, 
+    cmd = r"{0} {1} sign {2}".format(config.PYTHON, 
         os.path.join(config.ACVTOOL_PATH, 'acvtool.py'), apk_path)
     result = request_pipe(cmd)
     return result

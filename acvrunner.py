@@ -68,7 +68,7 @@ def is_row_app(path):
 
 
 def acvtool_instrument(apk_path):
-    cmd = "{0} {1} instrument -f -g {2} --wd {3} {4}".format(config.ACVTOOL_PYTHON, 
+    cmd = "{0} {1} instrument -f -g {2} --wd {3} {4}".format(config.PYTHON, 
         os.path.join(config.ACVTOOL_PATH, 'acvtool.py'), config.GRANULARITY,
         config.ACVTOOL_WD, apk_path)
     result = request_pipe(cmd)

@@ -1,0 +1,14 @@
+APK_REPOSITORY = r"C:\fdroid\errors"
+PYTHON = r"py -2"
+
+# acvrunner.py settings
+ACVTOOL_RESULTS = r"C:\fdroid\errors\acvtool_results"
+ACVTOOL_PATH = r"C:\projects\droidmod\droidmod-smali-modifier"
+
+ACVTOOL_WD = r"C:\fdroid\errors\working_dir"
+GRANULARITY = "instruction" # [method or instruction]
+
+# apktool_runner.py settings (dont use in acvrunner.py)
+APKTOOL_PATH = r"C:\distr\android\apktool\apktool_2.3.1.jar"
+APKTOOL_RESULTS = r"C:\fdroid\errors\apktool_results"
+APKTOOL_WD = r"C:\apktool_results\working_dir"
