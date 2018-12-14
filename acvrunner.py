@@ -68,7 +68,7 @@ def is_row_app(path):
 
 
 def acvtool_instrument(apk_path):
-    cmd = "{0} {1} instrument -f -g {2} --wd {3} {4} -ms single".format(config.ACVTOOL_PYTHON, 
+    cmd = "{0} {1} instrument -f -g {2} --wd {3} {4} -ms single".format(config.PYTHON,
         os.path.join(config.ACVTOOL_PATH, 'acvtool.py'), config.GRANULARITY,
         config.ACVTOOL_WD, apk_path)
     result = request_pipe(cmd)
@@ -93,7 +93,7 @@ def move_files(package_name, done_list_file):
             done_list_file.flush()
         else:
             raise Exception("ACVTOOL FAILED")
-        
+
 def request_pipe(cmd):
     pipe = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
     out, err = pipe.communicate()
