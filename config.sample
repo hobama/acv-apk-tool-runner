@@ -12,3 +12,7 @@ GRANULARITY = "instruction" # [method or instruction]
 APKTOOL_PATH = r"C:\distr\android\apktool\apktool_2.3.1.jar"
 APKTOOL_RESULTS = r"C:\fdroid\errors\apktool_results"
 APKTOOL_WD = r"C:\apktool_results\working_dir"
+
+# ella_runner.py 
+ELLA = r"/Users/ap/projects/ella"
+#java -ea -classpath $ELLA_DIR/bin/ella.instrument.jar com.apposcopy.ella.EllaLauncher i $*
