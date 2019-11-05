@@ -34,10 +34,12 @@ def main():
         for pkg in projects_to_process:
             try:
                 apk_path = os.path.join(config.APK_REPOSITORY, pkg + '.apk')
+                ella_out_dir = apk_path.replace("/", "_").replace("\\", "_").replace(":", "_")
+                instrumented_apk_path = os.path.join(ELLA_RESULTS, ella_out_dir, "instrumented.apk")
+                print(f"{instrumented_apk_path}")
                 result = ella_instrument(apk_path)
-                check_result(result)
+                check_result(done_list_file, instrumented_apk_path, pkg, result)
                 logging.info('{} ELLA: {}'.format(pkg, result))
-                #move_files(pkg, done_list_file)
                 counter += 1
             except KeyboardInterrupt:
                 logging.info('Keyboard interrupt.')
@@ -52,8 +54,18 @@ def main():
     logging.info("Finished.")
 
 
-def check_result(result):
-    print(result)
+def check_result(done_list_file, out_path, package, result):
+    if os.path.exists(out_path):
+        logging.info('{}.apk: SUCCESS'.format(package))
+        done_list_file.write(u'{}: SUCCESS\n'.format(package))
+        done_list_file.flush()
+        return True
+    else:
+        logging.exception('{}: FAIL : {}'.format(package, result))
+        done_list_file.write(u'{}: FAIL\n'.format(package))
+        done_list_file.flush()
+        return False
+
 
 def get_done_project_names(done_list_file):
     done_list_file.seek(0)
@@ -76,25 +88,6 @@ def ella_instrument(apk_path):
     result = request_pipe(cmd)
     return result
 
-def move_files(package_name, done_list_file):
-        pickle = os.path.join(config.ACVTOOL_WD, "metadata", package_name + ".pickle")
-        instrumented_apk = os.path.join(config.ACVTOOL_WD, "instr_" + package_name + ".apk")
-        #android_manifest = os.path.join(config.ACVTOOL_WD, "apktool", "AndroidManifest.xml")
-        app_dir = os.path.join(config.ACVTOOL_RESULTS, package_name)
-        if os.path.exists(pickle) and os.path.exists(instrumented_apk):
-            if not os.path.exists(app_dir):
-                os.makedirs(app_dir)
-            shutil.move(pickle, os.path.join(app_dir, package_name + ".pickle"))
-            shutil.move(instrumented_apk, os.path.join(app_dir, package_name + ".apk"))
-            #shutil.move(android_manifest, os.path.join(config.ACVTOOL_RESULTS, package_name + ".xml"))
-            original_apk_at_wd = os.path.join(config.ACVTOOL_WD, package_name + ".apk")
-            if os.path.exists(original_apk_at_wd):
-                os.remove(original_apk_at_wd)
-            logging.info('{}.apk: SUCCESS'.format(package_name))
-            done_list_file.write(u'{}: SUCCESS\n'.format(package_name))
-            done_list_file.flush()
-        else:
-            raise Exception("ACVTOOL FAILED")
 
 def request_pipe(cmd):
     pipe = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
@@ -118,9 +111,6 @@ def done_file_stats():
     else:
         logging.info("Processing was started from scratch.")
 
-def setup_logging():
-    with open('logging.yaml') as f:
-        logging.config.dictConfig(yaml.safe_load(f.read()))
 
 if __name__ == "__main__":
     logging.basicConfig(filename="log.log", level=logging.DEBUG)
